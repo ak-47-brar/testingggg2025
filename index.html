@@ -9,10 +9,17 @@
 <body>
     <div class="container">
         <header>
-            <h1>📚 Study Time Tracker</h1>
+            <div class="header-content">
+                <h1>📚 Study Time Tracker</h1>
+                <div class="user-info">
+                    <span id="username-display"></span>
+                    <button id="logout-btn" class="btn-logout">Logout</button>
+                </div>
+            </div>
             <nav>
                 <button class="nav-btn active" data-page="timer">Timer</button>
                 <button class="nav-btn" data-page="analytics">Analytics</button>
+                <button class="nav-btn" data-page="sync">Sync Data</button>
             </nav>
         </header>
 
@@ -100,6 +107,41 @@
             <div class="sessions-list">
                 <h3>Recent Sessions</h3>
                 <div id="sessions-container"></div>
+            </div>
+        </div>
+
+        <!-- Sync Data Page -->
+        <div id="sync-page" class="page">
+            <div class="sync-container">
+                <h2>☁️ Data Management</h2>
+                
+                <div class="sync-card">
+                    <h3>📥 Export Your Data</h3>
+                    <p>Download your study data as a JSON file for backup or transfer.</p>
+                    <button id="export-btn" class="btn-sync">Export Data</button>
+                </div>
+
+                <div class="sync-card">
+                    <h3>📤 Import Data</h3>
+                    <p>Restore your study data from a previously exported file.</p>
+                    <input type="file" id="import-file" accept=".json" style="display: none;">
+                    <button id="import-btn" class="btn-sync">Import Data</button>
+                </div>
+
+                <div class="sync-card">
+                    <h3>🔄 Auto-Sync Status</h3>
+                    <p>Your data is automatically saved to your browser's local storage.</p>
+                    <div class="sync-status">
+                        <span class="status-indicator">●</span>
+                        <span>Last saved: <span id="last-saved">Just now</span></span>
+                    </div>
+                </div>
+
+                <div class="sync-card danger">
+                    <h3>⚠️ Clear All Data</h3>
+                    <p>Permanently delete all your study sessions. This cannot be undone!</p>
+                    <button id="clear-data-btn" class="btn-danger">Clear All Data</button>
+                </div>
             </div>
         </div>
     </div>

@@ -24,10 +24,42 @@ header {
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
 }
 
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
 header h1 {
     color: #667eea;
-    margin-bottom: 15px;
-    text-align: center;
+    margin: 0;
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+#username-display {
+    color: #374151;
+    font-weight: 500;
+}
+
+.btn-logout {
+    padding: 8px 20px;
+    background: #ef4444;
+    color: white;
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.3s;
+}
+
+.btn-logout:hover {
+    background: #dc2626;
 }
 
 nav {
@@ -338,7 +370,102 @@ nav {
     font-style: italic;
 }
 
+/* Sync Page Styles */
+.sync-container {
+    background: white;
+    padding: 40px;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.sync-container h2 {
+    color: #667eea;
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.sync-card {
+    background: #f9fafb;
+    padding: 25px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    border-left: 4px solid #667eea;
+}
+
+.sync-card.danger {
+    border-left-color: #ef4444;
+    background: #fef2f2;
+}
+
+.sync-card h3 {
+    color: #374151;
+    margin-bottom: 10px;
+}
+
+.sync-card p {
+    color: #6b7280;
+    margin-bottom: 15px;
+}
+
+.btn-sync {
+    padding: 12px 30px;
+    background: #667eea;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 500;
+    transition: all 0.3s;
+}
+
+.btn-sync:hover {
+    background: #5568d3;
+    transform: translateY(-2px);
+}
+
+.btn-danger {
+    padding: 12px 30px;
+    background: #ef4444;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 500;
+    transition: all 0.3s;
+}
+
+.btn-danger:hover {
+    background: #dc2626;
+}
+
+.sync-status {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+    background: white;
+    border-radius: 8px;
+}
+
+.status-indicator {
+    color: #10b981;
+    font-size: 20px;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
 @media (max-width: 768px) {
+    .header-content {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
     .timer-display {
         font-size: 48px;
     }
@@ -349,5 +476,9 @@ nav {
     
     .btn {
         width: 100%;
+    }
+    
+    nav {
+        flex-wrap: wrap;
     }
 }

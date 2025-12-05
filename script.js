@@ -1,3 +1,56 @@
+// Check authentication
+function checkAuth() {
+    const isLoggedIn = sessionStorage.getItem('isLoggedIn');
+    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+    
+    if (!isLoggedIn || !currentUser) {
+        window.location.href = 'auth.html';
+        return null;
+    }
+    
+    document.getElementById('username-display').textContent = `Hello, ${currentUser.username}!`;
+    return currentUser;
+}
+
+const currentUser = checkAuth();
+if (!currentUser) {
+    // Redirect handled in checkAuth
+} else {
+
+// Logout functionality
+document.getElementById('logout-btn').addEventListener('click', () => {
+    if (confirm('Are you sure you want to logout?')) {
+        // Save current sessions to user profile
+        saveSessionsToUser();
+        
+        sessionStorage.removeItem('isLoggedIn');
+        window.location.href = 'auth.html';
+    }
+});
+
+function saveSessionsToUser() {
+    const users = JSON.parse(localStorage.getItem('studyTrackerUsers')) || [];
+    const sessions = JSON.parse(localStorage.getItem('studySessions')) || [];
+    
+    const userIndex = users.findIndex(u => u.username === currentUser.username);
+    if (userIndex !== -1) {
+        users[userIndex].studySessions = sessions;
+        users[userIndex].lastSync = new Date().toISOString();
+        localStorage.setItem('studyTrackerUsers', JSON.stringify(users));
+    }
+}
+
+// Auto-save every 30 seconds
+setInterval(() => {
+    saveSessionsToUser();
+    updateLastSaved();
+}, 30000);
+
+function updateLastSaved() {
+    const now = new Date();
+    document.getElementById('last-saved').textContent = now.toLocaleTimeString();
+}
+
 // Global variables
 let timerInterval = null;
 let totalSeconds = 0;
@@ -18,11 +71,9 @@ document.querySelectorAll('.nav-btn').forEach(btn => {
     btn.addEventListener('click', () => {
         const page = btn.dataset.page;
         
-        // Update active nav button
         document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         
-        // Update active page
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
         document.getElementById(`${page}-page`).classList.add('active');
         
@@ -42,7 +93,6 @@ function updateTimerDisplay() {
     minutesDisplay.textContent = String(minutes).padStart(2, '0');
     secondsDisplay.textContent = String(seconds).padStart(2, '0');
     
-    // Update current session time
     const sessionHours = Math.floor(totalSeconds / 3600);
     const sessionMinutes = Math.floor((totalSeconds % 3600) / 60);
     document.getElementById('current-session-time').textContent = `${sessionHours}h ${sessionMinutes}m`;
@@ -73,17 +123,17 @@ function pauseTimer() {
 
 function stopTimer() {
     if (totalSeconds > 0) {
-        // Save session
         const session = {
             date: new Date().toISOString(),
             duration: totalSeconds,
-            notes: sessionNotes.value.trim()
+            notes: sessionNotes.value.trim(),
+            username: currentUser.username
         };
         
         sessions.unshift(session);
         localStorage.setItem('studySessions', JSON.stringify(sessions));
+        saveSessionsToUser();
         
-        // Reset timer
         clearInterval(timerInterval);
         totalSeconds = 0;
         isRunning = false;
@@ -94,14 +144,11 @@ function stopTimer() {
         pauseBtn.disabled = true;
         stopBtn.disabled = true;
         
-        // Update today's stats
         updateTodayStats();
-        
         alert('Session saved successfully!');
     }
 }
 
-// Event Listeners
 startBtn.addEventListener('click', startTimer);
 pauseBtn.addEventListener('click', pauseTimer);
 stopBtn.addEventListener('click', stopTimer);
@@ -175,7 +222,6 @@ function updateOverviewStats(filteredSessions) {
     document.getElementById('total-time').textContent = `${hours}h ${minutes}m`;
     document.getElementById('total-sessions').textContent = filteredSessions.length;
     
-    // Average per day
     const days = currentRange === 'all' ? getDaysSinceFirstSession() : currentRange;
     const avgSeconds = days > 0 ? totalTime / days : 0;
     const avgHours = Math.floor(avgSeconds / 3600);
@@ -214,9 +260,7 @@ function updateDailyChart(filteredSessions) {
     
     const ctx = document.getElementById('daily-chart').getContext('2d');
     
-    if (dailyChart) {
-        dailyChart.destroy();
-    }
+    if (dailyChart) dailyChart.destroy();
     
     dailyChart = new Chart(ctx, {
         type: 'bar',
@@ -236,10 +280,7 @@ function updateDailyChart(filteredSessions) {
             scales: {
                 y: {
                     beginAtZero: true,
-                    title: {
-                        display: true,
-                        text: 'Minutes'
-                    }
+                    title: { display: true, text: 'Minutes' }
                 }
             }
         }
@@ -250,7 +291,6 @@ function updateContinuityCalendar() {
     const calendar = document.getElementById('continuity-calendar');
     calendar.innerHTML = '';
     
-    // Show last 42 days (6 weeks)
     for (let i = 41; i >= 0; i--) {
         const date = new Date();
         date.setDate(date.getDate() - i);
@@ -267,15 +307,10 @@ function updateContinuityCalendar() {
         dayDiv.textContent = date.getDate();
         dayDiv.title = `${dateStr}: ${Math.round(totalMinutes)} minutes`;
         
-        if (totalMinutes === 0) {
-            dayDiv.classList.add('no-study');
-        } else if (totalMinutes < 60) {
-            dayDiv.classList.add('light');
-        } else if (totalMinutes < 120) {
-            dayDiv.classList.add('medium');
-        } else {
-            dayDiv.classList.add('heavy');
-        }
+        if (totalMinutes === 0) dayDiv.classList.add('no-study');
+        else if (totalMinutes < 60) dayDiv.classList.add('light');
+        else if (totalMinutes < 120) dayDiv.classList.add('medium');
+        else dayDiv.classList.add('heavy');
         
         calendar.appendChild(dayDiv);
     }
@@ -310,7 +345,6 @@ function updateSessionsList() {
     });
 }
 
-// Range buttons
 document.querySelectorAll('.range-btn').forEach(btn => {
     btn.addEventListener('click', () => {
         document.querySelectorAll('.range-btn').forEach(b => b.classList.remove('active'));
@@ -320,6 +354,73 @@ document.querySelectorAll('.range-btn').forEach(btn => {
     });
 });
 
+// Data Export/Import
+document.getElementById('export-btn').addEventListener('click', () => {
+    const dataToExport = {
+        username: currentUser.username,
+        sessions: sessions,
+        exportDate: new Date().toISOString()
+    };
+    
+    const blob = new Blob([JSON.stringify(dataToExport, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `study-data-${currentUser.username}-${new Date().toISOString().split('T')[0]}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    
+    alert('Data exported successfully!');
+});
+
+document.getElementById('import-btn').addEventListener('click', () => {
+    document.getElementById('import-file').click();
+});
+
+document.getElementById('import-file').addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = (event) => {
+        try {
+            const data = JSON.parse(event.target.result);
+            
+            if (!data.sessions || !Array.isArray(data.sessions)) {
+                throw new Error('Invalid data format');
+            }
+            
+            if (confirm(`Import ${data.sessions.length} sessions? This will merge with your existing data.`)) {
+                sessions = [...sessions, ...data.sessions];
+                sessions.sort((a, b) => new Date(b.date) - new Date(a.date));
+                localStorage.setItem('studySessions', JSON.stringify(sessions));
+                saveSessionsToUser();
+                
+                updateTodayStats();
+                alert('Data imported successfully!');
+            }
+        } catch (error) {
+            alert('Error importing data. Please check the file format.');
+        }
+    };
+    reader.readAsText(file);
+});
+
+document.getElementById('clear-data-btn').addEventListener('click', () => {
+    if (confirm('Are you sure? This will permanently delete all your study sessions!')) {
+        if (confirm('Last warning! This action cannot be undone. Continue?')) {
+            sessions = [];
+            localStorage.setItem('studySessions', JSON.stringify(sessions));
+            saveSessionsToUser();
+            updateTodayStats();
+            alert('All data cleared.');
+        }
+    }
+});
+
 // Initialize
 updateTimerDisplay();
 updateTodayStats();
+updateLastSaved();
+
+}
